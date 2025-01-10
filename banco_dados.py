@@ -2,8 +2,10 @@ from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, F
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
+
 # Configuração do banco de dados
-engine = create_engine("C:\Users\pedro\OneDrive\Documentos\projetos\wprof\sqlite:///escola_jiu_jitsu.db", echo=True)
+engine = create_engine("sqlite:///C:/Users/pedro/OneDrive/Documentos/projetos/cadastro-de-alunos/escola_jiu_jitsu.db", echo=True)
+
 Base = declarative_base()
 
 
@@ -45,8 +47,9 @@ def adicionar_turma(nome_turma):
     print(f"Turma '{nome_turma}' adicionada com sucesso!")
 
 # Função para adicionar um aluno com relação à turma
-def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, nome_turma):
+def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, data_cadastro, nome_turma):
     turma = session.query(Turma).filter_by(nome=nome_turma).first()
+    data_nascimento = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
     if not turma:
         print(f"Turma '{nome_turma}' não encontrada. Criando turma...")
         adicionar_turma(nome_turma)  # Cria a turma se não existir
@@ -58,7 +61,8 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, no
         faixa=faixa,
         foto_perfil=foto_perfil,
         numero=numero,
-        data_nascimento=data_nascimento,  # Correção para data de nascimento
+        data_nascimento=data_nascimento,
+        data_cadastro=data_cadastro,# Correção para data de nascimento
         turma=turma  # Relaciona o aluno com a turma
     )
     session.add(novo_aluno)
@@ -68,14 +72,12 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, no
 # Função para listar todos os alunos
 def listar_alunos():
     alunos = session.query(Aluno).all()
-    for aluno in alunos:
-        print(f"ID: {aluno.id}, Nome: {aluno.nome}, Idade: {aluno.idade}, Faixa: {aluno.faixa}, Número: {aluno.numero}, Data de Nascimento: {aluno.data_nascimento}, Turma: {aluno.turma.nome}")
-
+    return alunos
+        
 # Função para listar todas as turmas
 def listar_turma():
     turmas = session.query(Turma).all()
-    for turma in turmas:
-        print(f"ID: {turma.id}, Nome: {turma.nome}")
+    return turmas
 
 # Função para filtrar alunos por nome
 def filtrar_alunos_por_nome(nome):
@@ -96,7 +98,8 @@ def filtrar_alunos_por_turma(turma):
         print(f"Nenhum aluno encontrado na turma '{turma}'.")
 
 # Função para atualizar dados de um aluno
-def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, nova_foto=None, novo_numero=None, nova_data_nascimento=None, nova_turma=None):
+def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, nova_foto=None, novo_numero=None, nova_data_nascimento=None, nova_data_cadastro=None, nova_turma=None):
+    data_nascimento = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
     aluno = session.query(Aluno).filter_by(id=aluno_id).first()
     if aluno:
         if novo_nome:
@@ -111,6 +114,8 @@ def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, 
             aluno.numero = novo_numero
         if nova_data_nascimento:
             aluno.data_nascimento = nova_data_nascimento
+        if nova_data_cadastro:
+            aluno.data_cadastro = nova_data_cadastro
         if nova_turma:
             turma = session.query(Turma).filter_by(nome=nova_turma).first()
             if turma:
@@ -151,3 +156,4 @@ def adicionar_aluno_na_turma(nome, nova_turma):
         print(f"Aluno {nome} movido para a turma '{nova_turma}' com sucesso!")
     else:
         print(f"Aluno {aluno} não encontrado.")
+
