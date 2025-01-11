@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from datetime import datetime
 
@@ -81,21 +81,13 @@ def listar_turma():
 
 # Função para filtrar alunos por nome
 def filtrar_alunos_por_nome(nome):
-    alunos = session.query(Aluno).filter(Aluno.nome.ilike(f"{nome}")).all()
-    if alunos:
-        for aluno in alunos:
-            print(f"ID: {aluno.id}, Nome: {aluno.nome}, Idade: {aluno.idade}, Faixa: {aluno.faixa}, Número: {aluno.numero}, Data de Nascimento: {aluno.data_nascimento}, Turma: {aluno.turma.nome}")
-    else:
-        print(f"Nenhum aluno encontrado com o nome '{nome}'.")
+    alunos = session.query(Aluno).filter(func.lower(Aluno.nome).like(f"%{nome.lower()}%")).all()
+    return alunos
 
 # Função para filtrar alunos por turma
-def filtrar_alunos_por_turma(turma):
-    alunos = session.query(Aluno).join(Turma).filter(Turma.nome.ilike(f"{turma}")).all()
-    if alunos:
-        for aluno in alunos:
-            print(f"ID: {aluno.id}, Nome: {aluno.nome}, Idade: {aluno.idade}, Faixa: {aluno.faixa}, Número: {aluno.numero}, Data de Nascimento: {aluno.data_nascimento}, Turma: {aluno.turma.nome}")
-    else:
-        print(f"Nenhum aluno encontrado na turma '{turma}'.")
+def filtrar_alunos_por_turma(id_turma):
+    alunos = session.query(Aluno).filter(Aluno.turma_id == id_turma).all()
+    return alunos
 
 # Função para atualizar dados de um aluno
 def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, nova_foto=None, novo_numero=None, nova_data_nascimento=None, nova_data_cadastro=None, nova_turma=None):

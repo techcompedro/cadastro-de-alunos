@@ -80,7 +80,7 @@ def listar_turma():
 
 # Função para filtrar alunos por nome
 def filtrar_alunos_por_nome(nome):
-    alunos = session.query(Aluno).filter(Aluno.nome.ilike(f"{nome}")).all()
+    alunos = session.query(Aluno).filter(Aluno.nome.ilike(f"%{nome}%")).all()
     if alunos:
         for aluno in alunos:
             print(f"ID: {aluno.id}, Nome: {aluno.nome}, Idade: {aluno.idade}, Faixa: {aluno.faixa}, Número: {aluno.numero}, Data de Nascimento: {aluno.data_nascimento}, Turma: {aluno.turma.nome}")
