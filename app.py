@@ -1,8 +1,13 @@
 import flet as ft  # Importa a biblioteca Flet para criação da interface gráfica
 from banco_dados import  remover_turma, listar_turma, adicionar_aluno_na_turma, adicionar_turma, adicionar_aluno, filtrar_alunos_por_turma, filtrar_alunos_por_nome, remover_aluno, atualizar_aluno, listar_alunos
-from datetime import datetime  # Importa as funções para listar alunos e turmas do banco de dados
+import datetime # Importa as funções para listar alunos e turmas do banco de dados
 
 def app(page: ft.Page):  # Função principal que recebe a página como parâmetro
+    def page_resize(e):
+        page.value = f"{page.width} px"
+        page.update()
+
+        page.on_resize = page_resize
 
     def tela_inicial():
         page.controls.clear()  # Limpa a página
@@ -40,9 +45,8 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         page.update()
 
         botões = [
-                ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar aluno'),
-                 ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Pesquisar alunos'),
-                ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar aluno na turma'),
+                ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar aluno', on_click=add_aluno),
+                ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Pesquisar alunos'),
                 ft.FloatingActionButton(icon=ft.Icons.DOWNLOADING_OUTLINED, text='Atualizar aluno'),
                 ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
                 ft.FloatingActionButton(icon=ft.Icons.HIGHLIGHT_REMOVE_OUTLINED, text='Remover aluno')
@@ -52,9 +56,103 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         page.add(ft.Column(controls=botões))
 
         page.update()  # Atualiza a página
-    
 
+    def salvar_aluno(e):
+        nome = nome_input.value
+        idade = int(idade_input.value)
+        faixa = faixa_dropdown.value
+        foto_perfil = foto_input.value
+        numero = numero_input.value
+        data_nascimento = data_nascimento_input.value
+        data_e_hora_atual = datetime.datetime.now()
+        data_cadastro = data_e_hora_atual.strftime("%Y-%m-%d %H:%M:%S")
+
+
+        nome_turma = nome_turma_input.value
+
+        adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, data_cadastro, nome_turma)
+
+        # Exibe uma mensagem de sucesso
+        page.add(ft.Text("Aluno salvo com sucesso!", color=ft.colors.GREEN))
+
+    # Função para criar a interface do formulário
+    def add_aluno(e):
+        page.controls.clear()  # Limpa a página
+        page.add(
+            ft.Column(
+                [
+                    ft.ElevatedButton(icon=ft.Icons.ARROW_BACK, text="Voltar", on_click=alunos_menu)
+                ]
+            )
+        )
+        turmas = listar_turma()
+
+        # Inputs do formulário
+        global nome_input, idade_input, faixa_dropdown, foto_input, numero_input, data_nascimento_input, data_cadastro_input, nome_turma_input
         
+        nome_input = ft.TextField(label="Nome", autofocus=True)
+        idade_input = ft.TextField(label="Idade", keyboard_type=ft.KeyboardType.NUMBER)
+        faixa_dropdown = ft.Dropdown(
+            label="Escolha a faixa do aluno",
+            options=[
+                ft.dropdown.Option("Branca"),
+                ft.dropdown.Option("Amarela"),
+                ft.dropdown.Option("Laranja"),
+                ft.dropdown.Option("Verde"),
+                ft.dropdown.Option("Azul"),
+                ft.dropdown.Option("Roxa"),
+                ft.dropdown.Option("Marrom"),
+                ft.dropdown.Option("Preta"),
+                ft.dropdown.Option("Coral"),
+                ft.dropdown.Option("Vermelha")
+            ]
+        )
+        foto_input = ft.TextField(label="Foto")
+        numero_input = ft.TextField(label="Número")
+        data_nascimento_input = ft.DatePicker(
+            first_date=datetime.date(1800, 1, 1),
+            last_date=datetime.date(2025, 12, 1),
+            on_dismiss=""
+        )
+
+        # Inicialize open_celender com um valor padrão
+        open_celender = None
+        nome_turma_input = None  # Garantir que sempre exista essa variável
+        open_celender = ft.ElevatedButton(
+                text='Data de nascimento', 
+                icon=ft.Icons.CALENDAR_MONTH, 
+                on_click= lambda e: page.open(data_nascimento_input)
+            )
+        if turmas:
+
+            nome_turma_input = ft.Dropdown(
+                label="Escolha a turma do aluno",
+                options=[(ft.dropdown.Option(turma.nome)) for turma in turmas]
+            )
+        else:
+            # Caso não tenha turmas, exibe mensagem
+            nao_tem_turmas = ft.Text("Não tem turmas")
+            nome_turma_input = nao_tem_turmas  # Exibe a mensagem ao invés de um dropdown
+
+        # Adicionando os campos e o botão de salvar
+        page.add(
+            ft.Column(
+                [
+                    nome_input,
+                    idade_input,
+                    faixa_dropdown,
+                    foto_input,
+                    numero_input,
+                    data_nascimento_input,
+                    open_celender,  # Fallback se não houver open_celender
+                    nome_turma_input,  # Pode ser o dropdown ou a mensagem
+                    ft.ElevatedButton(text="Salvar", on_click=salvar_aluno)
+                ]
+            )
+        )
+        
+        page.update()
+
     def lista_alunos(e):
         page.controls.clear()  # Limpa a página
         page.add(

@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, Date, DateTime, ForeignKey, func
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from datetime import datetime
+from datetime import datetime, date
 
 
 # Configuração do banco de dados
@@ -48,26 +48,53 @@ def adicionar_turma(nome_turma):
 
 # Função para adicionar um aluno com relação à turma
 def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, data_cadastro, nome_turma):
+    # Buscando a turma pelo nome
     turma = session.query(Turma).filter_by(nome=nome_turma).first()
-    data_nascimento = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
+
+    # Convertendo a data de nascimento para o tipo correto (como objeto de data)
+    if isinstance(data_nascimento, datetime):
+        data_nascimento = data_nascimento.date()  # Converte para apenas a parte da data
+    else:
+        try:
+            # Se for uma string, tenta converter para datetime e depois extrai a data
+            data_nascimento = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
+        except ValueError as e:
+            print(f"Erro na conversão da data: {e}")
+            return  # Aqui você pode retornar ou lançar uma exceção, caso prefira
+
+    print(f"data_nascimento após conversão: {data_nascimento}, tipo: {type(data_nascimento)}")
+
+    # Garantindo que data_cadastro seja datetime
+    data_e_hora_atual = datetime.now()
+    data_cadastro = data_e_hora_atual.strftime("%Y-%m-%d %H:%M:%S")  # Aqui, já está formatado
+
+    # Caso a turma não exista, cria uma nova turma
     if not turma:
         print(f"Turma '{nome_turma}' não encontrada. Criando turma...")
-        adicionar_turma(nome_turma)  # Cria a turma se não existir
-        turma = session.query(Turma).filter_by(nome=nome_turma).first()
-    
+        turma = Turma(nome=nome_turma)
+        session.add(turma)
+        session.commit()
+
+    # Criando um novo aluno
     novo_aluno = Aluno(
         nome=nome,
         idade=idade,
         faixa=faixa,
         foto_perfil=foto_perfil,
         numero=numero,
-        data_nascimento=data_nascimento,
-        data_cadastro=data_cadastro,# Correção para data de nascimento
-        turma=turma  # Relaciona o aluno com a turma
+        data_nascimento=data_nascimento,  # Passando a data como objeto datetime.date
+        data_cadastro=data_cadastro,      # Passando datetime como string
+        turma_id=turma.id  # Relacionando o aluno com a turma
     )
-    session.add(novo_aluno)
-    session.commit()
-    print(f"Aluno '{nome}' adicionado à turma '{nome_turma}' com sucesso!")
+    
+    # Tentando adicionar o aluno no banco de dados
+    try:
+        session.add(novo_aluno)
+        session.commit()
+        print(f"Aluno '{nome}' adicionado com sucesso!")
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao adicionar aluno: {e}")
 
 # Função para listar todos os alunos
 def listar_alunos():
@@ -148,4 +175,5 @@ def adicionar_aluno_na_turma(nome, nova_turma):
         print(f"Aluno {nome} movido para a turma '{nova_turma}' com sucesso!")
     else:
         print(f"Aluno {aluno} não encontrado.")
+
 
