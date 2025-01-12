@@ -90,10 +90,11 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         # Inputs do formulário
         global nome_input, idade_input, faixa_dropdown, foto_input, numero_input, data_nascimento_input, data_cadastro_input, nome_turma_input
         
-        nome_input = ft.TextField(label="Nome", autofocus=True)
-        idade_input = ft.TextField(label="Idade", keyboard_type=ft.KeyboardType.NUMBER)
+        nome_input = ft.TextField(label="Nome", autofocus=True, width=400)
+        idade_input = ft.TextField(label="Idade", keyboard_type=ft.KeyboardType.NUMBER, width=400)
         faixa_dropdown = ft.Dropdown(
             label="Escolha a faixa do aluno",
+            width=400,
             options=[
                 ft.dropdown.Option("Branca"),
                 ft.dropdown.Option("Amarela"),
@@ -107,8 +108,8 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                 ft.dropdown.Option("Vermelha")
             ]
         )
-        foto_input = ft.TextField(label="Foto")
-        numero_input = ft.TextField(label="Número")
+        foto_input = ft.TextField(label="Foto", width=400)
+        numero_input = ft.TextField(label="Número", width=400)
         data_nascimento_input = ft.DatePicker(
             first_date=datetime.date(1800, 1, 1),
             last_date=datetime.date(2025, 12, 1),
@@ -127,7 +128,8 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
 
             nome_turma_input = ft.Dropdown(
                 label="Escolha a turma do aluno",
-                options=[(ft.dropdown.Option(turma.nome)) for turma in turmas]
+                options=[(ft.dropdown.Option(turma.nome)) for turma in turmas], 
+                width=400
             )
         else:
             # Caso não tenha turmas, exibe mensagem
@@ -152,6 +154,7 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         )
         
         page.update()
+
 
     def lista_alunos(e):
         page.controls.clear()  # Limpa a página
@@ -220,9 +223,17 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         # Recupera a lista de turmas
         turmas = listar_turma()
         
+        
+        page.add(
+                ft.Column(
+                    controls=[
+                        ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
+                        ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar turma', on_click=add_turma)
+                    ]
+                )
+            )
         botoes_turmas = []
         for turma in turmas:
-            page.add(ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos))
             botoes_turmas.append(
                 ft.FloatingActionButton(
                     icon=ft.Icons.PEOPLE_ALT_ROUNDED,
@@ -230,12 +241,50 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                     on_click=lambda e, t=turma: filtrar_alunos_turma(t.id)
                 )
             )
-
+        
         # Exibe todos os botões dentro de uma coluna
         page.add(ft.Column(controls=botoes_turmas))
         
         # Atualiza a página
         page.update()
+
+
+    def salvar_turma(e):
+        nome_turma = nome_input.value
+
+        adicionar_turma(nome_turma)
+
+        # Exibe uma mensagem de sucesso
+        page.add(ft.Text("Turma salva com sucesso!", color=ft.colors.GREEN))
+
+    
+    def add_turma(e):
+        page.controls.clear()  # Limpa a página
+        page.add(
+            ft.Column(
+                    [
+                        ft.ElevatedButton(icon=ft.Icons.ARROW_BACK, text="Voltar", on_click=turmas_menu)
+                    ]
+                )
+            )
+        turmas = listar_turma()
+
+            # Inputs do formulário
+        global nome_input
+            
+        nome_input = ft.TextField(label="Nome", autofocus=True, width=400)  # Define a largura para 200 pixels
+
+
+        page.add(
+            ft.Column(
+                    [
+                        nome_input,
+                        ft.ElevatedButton(text="Salvar", on_click=salvar_turma)
+                    ]
+                )
+            )
+        page.update()
+    
     
     def filtrar_alunos_turma(id_turma):
         page.controls.clear()  # Limpa a página
