@@ -157,14 +157,14 @@ def remover_aluno(nome):
         print(f'Aluno {nome} não encontrado.')
 
 # Função para excluir uma turma e seus alunos
-def remover_turma(nome_turma):
-    turma = session.query(Turma).filter_by(nome=nome_turma).first()
-    if turma:
-        session.delete(turma)  # Deleta a turma e seus alunos associados
+def remover_turma(nome):
+    turmas = session.query(Turma).filter_by(nome=nome).first()
+    if turmas:
+        session.delete(turmas)  # Deleta a turma e seus alunos associados
         session.commit()
-        print(f"Turma '{nome_turma}' e seus alunos foram deletados com sucesso!")
+        print(f"Turma '{nome}' e seus alunos foram deletados com sucesso!")
     else:
-        print(f"Turma '{nome_turma}' não encontrada.")
+        print(f"Turma '{nome}' não encontrada.")
 
 # Função para adicionar um aluno na turma 
 def adicionar_aluno_na_turma(nome, nova_turma):

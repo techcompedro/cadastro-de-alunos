@@ -8,6 +8,10 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         page.update()
 
         page.on_resize = page_resize
+    # Configura o alinhamento global da página
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    page.padding = 1  # Remove espaçamentos extras
 
     def tela_inicial():
         page.controls.clear()  # Limpa a página
@@ -32,6 +36,7 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                     ])
                 )
 
+
     # Função para mostrar a segunda tela
     def alunos_menu(e):
         page.controls.clear()  # Limpa a página
@@ -45,17 +50,17 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         page.update()
 
         botões = [
+                ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
                 ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar aluno', on_click=add_aluno),
                 ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Pesquisar alunos'),
                 ft.FloatingActionButton(icon=ft.Icons.DOWNLOADING_OUTLINED, text='Atualizar aluno'),
-                ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
-                ft.FloatingActionButton(icon=ft.Icons.HIGHLIGHT_REMOVE_OUTLINED, text='Remover aluno', on_click=delete_aluno)
             ]
 
             # Organizando os botões na tela em uma coluna
         page.add(ft.Column(controls=botões))
 
         page.update()  # Atualiza a página
+
 
     def salvar_aluno(e):
         nome = nome_input.value
@@ -71,6 +76,7 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         # Exibe uma mensagem de sucesso
         page.add(ft.Text("Aluno salvo com sucesso!", color=ft.colors.GREEN))
 
+
     # Função para criar a interface do formulário
     def add_aluno(e):
         page.controls.clear()  # Limpa a página
@@ -81,6 +87,13 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                 ]
             )
         )
+        cadastro_aluno = ft.Text('Cadastro de alunos',
+                size=30,  # Tamanho da fonte
+                weight=ft.FontWeight.BOLD,  # Peso da fonte (negrito)
+                color=ft.colors.BLUE,  # Cor do texto
+                text_align=ft.TextAlign.CENTER, )
+        page.add(cadastro_aluno)
+        
         turmas = listar_turma()
 
         # Inputs do formulário
@@ -150,15 +163,6 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         
         page.update()
 
-    def delete_aluno(e):
-        page.controls.clear()  # Limpa a página
-        page.add(
-            ft.Column(
-                [
-                    ft.ElevatedButton(icon=ft.Icons.ARROW_BACK, text="Voltar", on_click=alunos_menu)
-                ]
-            )
-        )
 
     # Função para listar os alunos
     def lista_alunos(e):
@@ -188,6 +192,8 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
 
             # Definindo a tabela de dados para o aluno
             tabela = ft.DataTable(
+                    width=900,  # Largura personalizada
+                    height=200,  # Altura personalizada
                 columns=[
                     ft.DataColumn(ft.Text("ID")),
                     ft.DataColumn(ft.Text("Nome")),
@@ -224,6 +230,9 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                         trailing=ft.IconButton(ft.Icons.DELETE, on_click=lambda e, aluno=aluno: remover_aluno(aluno.nome))
                     )
                 ]
+                ,
+                width=1000,  # Largura do painel
+                height=300,
             )
 
             painel.controls.append(exp)
@@ -232,7 +241,70 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         page.add(painel)
         page.update()
 
-   
+
+    def delete_turma(e):
+        page.controls.clear()  # Limpa a página
+        page.add(
+            ft.Column(
+                [
+                    ft.ElevatedButton(icon=ft.Icons.ARROW_BACK, text="Voltar", on_click=turmas_menu)
+                ]
+            )
+        )
+        aviso = ft.Text(
+            'Se você excluir uma turma, os alunos dessa turma serão todos excluídos',  
+            size=25,  
+            weight=ft.FontWeight.BOLD,  
+            text_align=ft.TextAlign.CENTER
+        )
+        page.add(aviso)
+
+        painel = ft.ExpansionPanelList(
+            expand_icon_color=ft.Colors.BLUE,
+            elevation=8,
+            divider_color=ft.Colors.BLUE,
+        )
+
+        turmas = listar_turma()  # Busca todas as turmas
+        
+        for turma in turmas:
+            exp = ft.ExpansionPanel(
+                header=ft.ListTile(title=ft.Text(f"{turma.nome}"))
+            )
+
+            tabela = ft.DataTable(
+                columns=[
+                    ft.DataColumn(ft.Text("ID")),
+                    ft.DataColumn(ft.Text("Turma")),
+                ],
+                rows=[
+                    ft.DataRow(
+                        cells=[
+                            ft.DataCell(ft.Text(str(turma.id))),
+                            ft.DataCell(ft.Text(str(turma.nome))),
+                        ]
+                    )
+                ]
+            )
+
+            exp.content = ft.Column(
+                [
+                    tabela,
+                    ft.ListTile(
+                        title=ft.Text(f"Excluir aluno"),
+                        subtitle=ft.Text(f"Pressione o ícone para excluir"),
+                        trailing=ft.IconButton(
+                            ft.Icons.DELETE,
+                            on_click=lambda e, turma=turma: remover_turma(turma.nome)
+                        )
+                    )
+                ]
+            )
+            painel.controls.append(exp)
+
+        page.add(painel)
+        page.update()
+
 
     def turmas_menu(e): 
         page.controls.clear()  # Limpa a página
@@ -250,13 +322,29 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         
         
         page.add(
-                ft.Column(
-                    controls=[
-                        ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
-                        ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar turma', on_click=add_turma)
-                    ]
-                )
+    ft.Column(
+        controls=[
+            ft.Row(
+                controls=[
+                    ft.FloatingActionButton(icon=ft.Icons.PEOPLE, text='Todos os alunos', on_click=lista_alunos),
+                    ft.FloatingActionButton(icon=ft.Icons.ADD_BOX, text='Adicionar turma', on_click=add_turma),
+                    ft.FloatingActionButton(icon=ft.Icons.DELETE, text='Remover turma', on_click=delete_turma),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER  # Alinha os botões à esquerda na linha
             )
+        ]
+    )
+)
+
+
+        turmas_text = ft.Text('Turmas',
+                size=30,  # Tamanho da fonte
+                weight=ft.FontWeight.BOLD,  # Peso da fonte (negrito)
+                color=ft.colors.BLUE,  # Cor do texto
+                text_align=ft.TextAlign.CENTER, )
+        page.add(turmas_text)
+        
+        
         botoes_turmas = []
         for turma in turmas:
             botoes_turmas.append(
@@ -282,7 +370,7 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
         # Exibe uma mensagem de sucesso
         page.add(ft.Text("Turma salva com sucesso!", color=ft.colors.GREEN))
 
-    
+
     def add_turma(e):
         page.controls.clear()  # Limpa a página
         page.add(
@@ -292,6 +380,13 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                     ]
                 )
             )
+        cadastro_turma = ft.Text('Cadastro de turmas',
+                size=30,  # Tamanho da fonte
+                weight=ft.FontWeight.BOLD,  # Peso da fonte (negrito)
+                color=ft.colors.BLUE,  # Cor do texto
+                text_align=ft.TextAlign.CENTER, )
+        page.add(cadastro_turma)
+        
         turmas = listar_turma()
 
             # Inputs do formulário
@@ -309,8 +404,8 @@ def app(page: ft.Page):  # Função principal que recebe a página como parâmet
                 )
             )
         page.update()
-    
-    
+
+
     def filtrar_alunos_turma(id_turma):
         page.controls.clear()  # Limpa a página
         page.add(
