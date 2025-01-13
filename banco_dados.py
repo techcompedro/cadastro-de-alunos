@@ -25,7 +25,7 @@ class Aluno(Base):
     faixa = Column(String, nullable=False)
     foto_perfil = Column(String)
     numero = Column(Integer)
-    data_nascimento = Column(Date, nullable=True)  # Data de nascimento
+    data_nascimento = Column(DateTime, nullable=True)  # Data de nascimento
     data_cadastro = Column(DateTime, default=datetime.utcnow)  # Data de cadastro
     turma_id = Column(Integer, ForeignKey('turmas.id'))  # Chave estrangeira para a turma
     turma = relationship("Turma", back_populates="alunos")  # Relacionamento com Turma
@@ -47,13 +47,13 @@ def adicionar_turma(nome_turma):
     print(f"Turma '{nome_turma}' adicionada com sucesso!")
 
 # Função para adicionar um aluno com relação à turma
-def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, data_cadastro, nome_turma):
+def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, nome_turma):
     # Buscando a turma pelo nome
     turma = session.query(Turma).filter_by(nome=nome_turma).first()
 
     # Convertendo a data de nascimento para o tipo correto (como objeto de data)
     if isinstance(data_nascimento, datetime):
-        data_nascimento = data_nascimento.date()  # Converte para apenas a parte da data
+        data_nascimento = data_nascimento.date()  # Mantém a data sem o horário
     else:
         try:
             # Se for uma string, tenta converter para datetime e depois extrai a data
@@ -66,7 +66,7 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, da
 
     # Garantindo que data_cadastro seja datetime
     data_e_hora_atual = datetime.now()
-    data_cadastro = data_e_hora_atual.strftime("%Y-%m-%d %H:%M:%S")  # Aqui, já está formatado
+    data_cadastro = data_e_hora_atual  # Não é necessário formatar se for um campo datetime
 
     # Caso a turma não exista, cria uma nova turma
     if not turma:
@@ -80,10 +80,10 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, da
         nome=nome,
         idade=idade,
         faixa=faixa,
-        foto_perfil=foto_perfil,
+        foto_perfil=foto_perfil,  # Garantir que seja o tipo de dado correto
         numero=numero,
         data_nascimento=data_nascimento,  # Passando a data como objeto datetime.date
-        data_cadastro=data_cadastro,      # Passando datetime como string
+        data_cadastro=data_cadastro,      # Passando datetime como objeto datetime
         turma_id=turma.id  # Relacionando o aluno com a turma
     )
     
