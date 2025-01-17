@@ -53,7 +53,7 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, no
 
     # Convertendo a data de nascimento para o tipo correto (como objeto de data)
     if isinstance(data_nascimento, datetime):
-        data_nascimento = data_nascimento.date()  # Mantém a data sem o horário
+        data_nascimento = data_nascimento.strftime("%Y-%m-%d")# Mantém a data sem o horário
     else:
         try:
             # Se for uma string, tenta converter para datetime e depois extrai a data
@@ -66,7 +66,8 @@ def adicionar_aluno(nome, idade, faixa, foto_perfil, numero, data_nascimento, no
 
     # Garantindo que data_cadastro seja datetime
     data_e_hora_atual = datetime.now()
-    data_cadastro = data_e_hora_atual  # Não é necessário formatar se for um campo datetime
+    data_somente_data = data_e_hora_atual.strftime("%Y-%m-%d | %H:%M")
+    data_cadastro = data_somente_data  # Não é necessário formatar se for um campo datetime
 
     # Caso a turma não exista, cria uma nova turma
     if not turma:
@@ -108,17 +109,38 @@ def listar_turma():
 
 # Função para filtrar alunos por nome
 def filtrar_alunos_por_nome(nome):
+    if not isinstance(nome, str):
+        return []
     alunos = session.query(Aluno).filter(func.lower(Aluno.nome).like(f"%{nome.lower()}%")).all()
     return alunos
+
+
+def filtrar_alunos_por_id(id):
+    alunos = session.query(Aluno).filter(Aluno.id == id).all()
+    return alunos
+
+
+def quantos_alunos():
+    total_alunos = session.query(Aluno).count()
+    total_turmas = session.query(Turma).count()
+    return total_alunos, total_turmas
+    
 
 # Função para filtrar alunos por turma
 def filtrar_alunos_por_turma(id_turma):
     alunos = session.query(Aluno).filter(Aluno.turma_id == id_turma).all()
     return alunos
 
-# Função para atualizar dados de um aluno
 def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, nova_foto=None, novo_numero=None, nova_data_nascimento=None, nova_data_cadastro=None, nova_turma=None):
-    data_nascimento = datetime.strptime(data_nascimento, "%d/%m/%Y").date()
+    if nova_data_nascimento:
+        try:
+            data_nascimento = datetime.strptime(nova_data_nascimento, "%Y-%m-%d %H:%M:%S").date()
+        except ValueError:
+            print("Formato de data inválido. Use o formato 'YYYY-MM-DD HH:MM:SS'.")
+            return
+    else:
+        data_nascimento = None
+
     aluno = session.query(Aluno).filter_by(id=aluno_id).first()
     if aluno:
         if novo_nome:
@@ -132,7 +154,7 @@ def atualizar_aluno(aluno_id, novo_nome=None, nova_idade=None, nova_faixa=None, 
         if novo_numero:
             aluno.numero = novo_numero
         if nova_data_nascimento:
-            aluno.data_nascimento = nova_data_nascimento
+            aluno.data_nascimento = data_nascimento
         if nova_data_cadastro:
             aluno.data_cadastro = nova_data_cadastro
         if nova_turma:
